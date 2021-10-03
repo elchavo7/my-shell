@@ -1,6 +1,6 @@
 import sys
 from IPython.utils.capture import capture_output
-import subprocess
+from subprocess import run
 import os
 import os.path
 my_prompt = "#:\itay's shell> "
@@ -157,17 +157,14 @@ def main():
         with open(file_to_direct_output, "w") as file:
             file.write(cmnd_manu(cmnd, cmnd_param))
         return
-    
+
     if "|" in shell_input and "|" not in shell_input[-2:-1]:
         input_splited = shell_input.split(" | ")
-        pipe_right_side = input_splited[0]
-        pipe_left_side = input_splited[1]
-        left_cmnd, left_params = split_to_cmnd_n_params(pipe_left_side)
-        with capture_output() as c:
-            cmnd_manu(left_cmnd, left_params)
-        right_cmnd, right_params = split_to_cmnd_n_params(pipe_right_side)
-        right_params = right_params + c.stdout.split(" ")
-        print(cmnd_manu(right_cmnd, right_params))
+        pipe_left_side = input_splited[0]
+        pipe_right_side = input_splited[1]
+        left = run(["python", pipe_left_side], capture_output=True)
+        right = run(["python", pipe_right_side], capture_output=True, input=left.stdout.decode(), text=True)
+        print(right)
         return
 
     cmnd_param = shell_input.split(" ")
